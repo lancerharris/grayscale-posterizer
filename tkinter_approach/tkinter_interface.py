@@ -141,9 +141,42 @@ values_entry = tk.Entry(bucket_frame)
 values_entry.grid(row=0, column=1, padx=5)
 values_entry.insert(0, "")
 
-tk.Label(bucket_frame, text="Optional Bin Breakpoints (comma separated list of breakpoints in 0-255 range):").grid(row=1, column=0, sticky="e")
+tk.Label(bucket_frame, text="Click on the gradient to add a grayscale value if you don't want to enter a number manually:").grid(row=1, column=0, columnspan=2, pady=(10, 0))
+gradient_canvas = tk.Canvas(bucket_frame, width=256, height=30, bg='white')
+gradient_canvas.grid(row=2, column=0, columnspan=2, pady=(0, 5))
+
+def draw_gradient():
+    gradient_canvas.delete("all")
+    width = 256
+    height = 30
+    for x in range(width):
+        gray = int((x / width) * 255)
+        hex_color = f'#{gray:02x}{gray:02x}{gray:02x}'
+        gradient_canvas.create_line(x, 0, x, height, fill=hex_color)
+
+draw_gradient()
+
+def on_gradient_click(event):
+    canvas_width = gradient_canvas.winfo_width()
+    # Convert the x-coordinate of the click to a grayscale value (0-255)
+    gray_value = int((event.x / canvas_width) * 255)
+    try:
+        # Try to parse the current values from the entry
+        current_values = values_entry.get().split(',')
+        current_values = [int(v.strip()) for v in current_values if v.strip() != ""]
+    except ValueError:
+        current_values = []
+    # Add the new grayscale value and sort
+    current_values.append(gray_value)
+    current_values = sorted(set(current_values))
+    values_entry.delete(0, tk.END)
+    values_entry.insert(0, ",".join(map(str, current_values)))
+
+gradient_canvas.bind("<Button-1>", on_gradient_click)
+
+tk.Label(bucket_frame, text="Optional Bin Breakpoints (comma separated list of breakpoints in 0-255 range):").grid(row=3, column=0, sticky="e")
 bin_levels_entry = tk.Entry(bucket_frame)
-bin_levels_entry.grid(row=1, column=1, padx=5)
+bin_levels_entry.grid(row=4, column=1, padx=5)
 bin_levels_entry.insert(0, "")
 
 # Process Button (Always at Bottom)
