@@ -9,9 +9,9 @@ def posterize_grayscale_basic(input_path, output_path, levels):
 
     normalized_pixels = img_array / 255
 
-    quantized_pixels = (normalized_pixels * (levels - 1)).astype(int)
+    quantized_pixels = (normalized_pixels * (levels)).astype(int)
 
-    result = (quantized_pixels / (levels - 1) * 255).astype(np.uint8)
+    result = (quantized_pixels / (levels) * 255).astype(np.uint8)
 
     output_img = Image.fromarray(result)
     output_img.save(output_path)
