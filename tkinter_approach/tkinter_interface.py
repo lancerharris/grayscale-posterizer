@@ -42,6 +42,7 @@ def update_result_preview(result_image):
 
 def select_input_file():
     global resized_result_image
+    global result_image
     path = filedialog.askopenfilename(
         title="Select Input Image",
         filetypes=[("Image Files", "*.jpg *.jpeg *.png *.bmp"), ("All Files", "*.*")]
@@ -51,6 +52,8 @@ def select_input_file():
         input_entry.insert(0, path)
         update_input_preview()
         resized_result_image = None
+        result_image = None
+        output_entry.delete(0, tk.END)
 
 def select_output_file():
     path = filedialog.asksaveasfilename(
