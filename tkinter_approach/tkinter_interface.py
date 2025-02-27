@@ -25,6 +25,8 @@ def update_input_preview():
             image = resize_image(image)
             input_image = ImageTk.PhotoImage(image)
             input_preview_label.config(image=input_image)
+            if resized_result_image:
+                result_preview_label.config(image=resized_result_image)
         except Exception as e:
             messagebox.showerror("Error", f"Could not load input image:\n{str(e)}")
 
@@ -39,6 +41,7 @@ def update_result_preview(result_image):
         messagebox.showerror("Error", str(e))
 
 def select_input_file():
+    global resized_result_image
     path = filedialog.askopenfilename(
         title="Select Input Image",
         filetypes=[("Image Files", "*.jpg *.jpeg *.png *.bmp"), ("All Files", "*.*")]
@@ -47,6 +50,7 @@ def select_input_file():
         input_entry.delete(0, tk.END)
         input_entry.insert(0, path)
         update_input_preview()
+        resized_result_image = None
 
 def select_output_file():
     path = filedialog.asksaveasfilename(
