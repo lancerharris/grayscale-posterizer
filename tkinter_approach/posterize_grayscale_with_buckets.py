@@ -25,6 +25,4 @@ def posterize_with_buckets(input_path, output_path, values, bin_levels=None):
     vectorized_map = np.vectorize(map_pixel)
     result = vectorized_map(img_array).astype(np.uint8)
 
-    output_img = Image.fromarray(result)
-    output_img.save(output_path)
-
+    return Image.fromarray(result)
