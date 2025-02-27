@@ -84,7 +84,7 @@ def process_image():
             messagebox.showerror("Error", "Values must be comma-separated integers.")
             return
         bin_levels = None
-        bin_str = bin_levels_entry.get().strip()
+        bin_str = bin_breakpoints_entry.get().strip()
         if bin_str:
             try:
                 bin_breakpoints = list(map(int, bin_str.split(",")))
@@ -128,6 +128,15 @@ def update_mode():
     else:
         bucket_frame.grid(row=0, column=0, sticky="w", padx=10, pady=5)
         basic_frame.grid_forget()
+
+def draw_gradient(gradient_canvas):
+    gradient_canvas.delete("all")
+    width = 256
+    height = 30
+    for x in range(width):
+        gray = int((x / width) * 255)
+        hex_color = f'#{gray:02x}{gray:02x}{gray:02x}'
+        gradient_canvas.create_line(x, 0, x, height, fill=hex_color)
 
 root = tk.Tk()
 root.title("Grayscale Posterizer")
@@ -189,22 +198,13 @@ values_entry.grid(row=0, column=1, padx=5)
 values_entry.insert(0, "")
 
 tk.Label(bucket_frame, text="Click on the gradient to add a grayscale value if you don't want to enter a number manually:").grid(row=1, column=0, columnspan=2, pady=(10, 0))
-gradient_canvas = tk.Canvas(bucket_frame, width=256, height=30, bg='white')
-gradient_canvas.grid(row=2, column=0, columnspan=2, pady=(0, 5))
+gradient_value_canvas = tk.Canvas(bucket_frame, width=256, height=30, bg='white')
+gradient_value_canvas.grid(row=2, column=0, columnspan=2, pady=(0, 5))
 
-def draw_gradient():
-    gradient_canvas.delete("all")
-    width = 256
-    height = 30
-    for x in range(width):
-        gray = int((x / width) * 255)
-        hex_color = f'#{gray:02x}{gray:02x}{gray:02x}'
-        gradient_canvas.create_line(x, 0, x, height, fill=hex_color)
+draw_gradient(gradient_value_canvas)
 
-draw_gradient()
-
-def on_gradient_click(event):
-    canvas_width = gradient_canvas.winfo_width()
+def on_gradient_value_click(event):
+    canvas_width = gradient_value_canvas.winfo_width()
     # Convert the x-coordinate of the click to a grayscale value (0-255)
     gray_value = int((event.x / canvas_width) * 255)
     try:
@@ -219,14 +219,45 @@ def on_gradient_click(event):
     values_entry.delete(0, tk.END)
     values_entry.insert(0, ",".join(map(str, current_values)))
 
-gradient_canvas.bind("<Button-1>", on_gradient_click)
+gradient_value_canvas.bind("<Button-1>", on_gradient_value_click)
 
 tk.Label(bucket_frame, text="Optional Bin Breakpoints (comma separated list of breakpoints in 0-255 range):").grid(row=3, column=0, sticky="e")
-bin_levels_entry = tk.Entry(bucket_frame)
-bin_levels_entry.grid(row=4, column=1, padx=5)
-bin_levels_entry.insert(0, "")
+bin_breakpoints_entry = tk.Entry(bucket_frame)
+bin_breakpoints_entry.grid(row=4, column=1, padx=5)
+bin_breakpoints_entry.insert(0, "")
 
-process_button = tk.Button(root, text="Process Image", command=process_image)
+tk.Label(bucket_frame, text="Click on the gradient to add a breakpoint if you don't want to enter a number manually:").grid(row=5, column=0, columnspan=2, pady=(10, 0))
+gradient_breakpoint_canvas = tk.Canvas(bucket_frame, width=256, height=30, bg='white')
+gradient_breakpoint_canvas.grid(row=6, column=0, columnspan=2, pady=(0, 5))
+
+draw_gradient(gradient_breakpoint_canvas)
+
+def on_gradient_breakpoint_click(event):
+    canvas_width = gradient_breakpoint_canvas.winfo_width()
+    # Convert the x-coordinate of the click to a grayscale value (0-255)
+    gray_value = int((event.x / canvas_width) * 255)
+    try:
+        # Try to parse the current values from the entry
+        current_values = values_entry.get().split(',')
+        current_values = [int(v.strip()) for v in current_values if v.strip() != ""]
+        current_values_length = len(current_values)
+        # Try to parse the current breakpoints from the entry
+        current_breakpoints = bin_breakpoints_entry.get().split(',')
+        current_breakpoints = [int(v.strip()) for v in current_breakpoints if v.strip() != ""]
+    except ValueError:
+        current_breakpoints = []
+    # Add the new grayscale value and sort
+    if len(current_breakpoints) < current_values_length - 1:
+        current_breakpoints.append(gray_value)
+        current_breakpoints = sorted(set(current_breakpoints))
+        bin_breakpoints_entry.delete(0, tk.END)
+        bin_breakpoints_entry.insert(0, ",".join(map(str, current_breakpoints)))
+    else:
+        messagebox.showerror("Error", "Number of bin breakpoints must be equal to the number of values - 1\n\nDelete some existing breakpoints or add some values before adding new breakpoints.")
+
+gradient_breakpoint_canvas.bind("<Button-1>", on_gradient_breakpoint_click)
+
+process_button = tk.Button(root, text="Process Image (Enter)", command=process_image)
 process_button.pack(pady=10)
 
 preview_frame = tk.Frame(root)
