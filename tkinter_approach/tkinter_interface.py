@@ -39,6 +39,7 @@ def process_image():
             pgb.posterize_grayscale_basic(input_path, output_path, levels)
         except ValueError:
             messagebox.showerror("Error", "Levels must be an integer.")
+            return
     else:
         try:
             values = list(map(int, values_entry.get().split(",")))
@@ -51,6 +52,9 @@ def process_image():
             try:
                 bin_breakpoints = list(map(int, bin_str.split(",")))
                 bin_levels = [0] + bin_breakpoints + [255]
+                if len(bin_levels) != len(values) + 1:
+                    messagebox.showerror("Error", "Number of bin levels must be equal to the number of values - 1.")
+                    return
             except ValueError:
                 messagebox.showerror("Error", "Bin breakpoints must be comma-separated integers.")
                 return
@@ -84,6 +88,10 @@ info_text = ('Welcome to Grayscale Posterizer!\nHere you can change a reference 
              'limited number of values. You can choose between two modes: "Basic" and "With Buckets".\n\n'
              'In "Basic" mode, you can specify the number of grayscale levels. In "With Buckets" mode, '
              'you can specify values and bin breakpoints to group grayscale levels into buckets.\n\n'
+             'For the "With Buckets" mode, the values in the result will be the values you selected. The optional bin breakpoints '
+             'will be used to group the original grayscale values into buckets between the breakpoints you select. Those pixels '
+             'in those buckets will then be given the values you selected. The number of bin breakpoints must be equal to the '
+                'number of values - 1.\n\n'
              'Select an input image, an output file, choose a mode, enter mode specifics, and click Process Image.')
 info_message = tk.Message(root, text=info_text, width=400)
 info_message.pack(padx=10, pady=10)
@@ -133,7 +141,7 @@ values_entry = tk.Entry(bucket_frame)
 values_entry.grid(row=0, column=1, padx=5)
 values_entry.insert(0, "")
 
-tk.Label(bucket_frame, text="Bin Breakpoints (comma separated list of breakpoints in 0-255 range):").grid(row=1, column=0, sticky="e")
+tk.Label(bucket_frame, text="Optional Bin Breakpoints (comma separated list of breakpoints in 0-255 range):").grid(row=1, column=0, sticky="e")
 bin_levels_entry = tk.Entry(bucket_frame)
 bin_levels_entry.grid(row=1, column=1, padx=5)
 bin_levels_entry.insert(0, "")
